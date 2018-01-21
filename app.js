@@ -7,8 +7,32 @@ var bodyParser = require('body-parser');
 
 var index = require('./routes/index');
 var users = require('./routes/users');
+var MongoClient = require('mongodb').MongoClient;
+var assert = require('assert')
 
 var app = express();
+
+// Get data from the database
+app.get("/sensor/:id/:garage", function(request, response) {
+  var id = request.params.id;
+  var garage = request.params.garage;
+
+  var uri="mongodb://n8houl:nah11796@seniordesign2-shard-00-00-ssssl.mongodb.net:27017,seniordesign2-shard-00-01-ssssl.mongodb.net:27017,seniordesign2-shard-00-02-ssssl.mongodb.net:27017/Garages?ssl=true&replicaSet=SeniorDesign2-shard-0&authSource=admin"
+  var result;
+  MongoClient.connect(uri, function(err, client) {
+    assert.equal(null, err);
+    const db = client.db('Garages');
+    var cursor = db.collection('Garage' + garage.toUpperCase()).find({name: 'sensor_' + id + '_garage' + garage});
+    cursor.forEach(function(doc, err) {
+      assert.equal(null, err);
+      result = doc;
+    }, function() {
+      client.close();
+      response.writeHead(200, {"Content-Type": "application/json"});
+      response.write(JSON.stringify(result));
+    });
+  });
+});
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
