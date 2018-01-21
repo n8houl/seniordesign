@@ -12,8 +12,12 @@ var assert = require('assert')
 
 var app = express();
 
+//app.get("/sensor", function(request, result) {
+//  console.log('Sensor page loaded');
+//});
+
 // Get data from the database
-app.get("/sensor/:id/:garage", function(request, response) {
+app.get("/:id/:garage", function(request, response) {
   var id = request.params.id;
   var garage = request.params.garage;
 
@@ -22,14 +26,15 @@ app.get("/sensor/:id/:garage", function(request, response) {
   MongoClient.connect(uri, function(err, client) {
     assert.equal(null, err);
     const db = client.db('Garages');
-    var cursor = db.collection('Garage' + garage.toUpperCase()).find({name: 'sensor_' + id + '_garage' + garage});
+    var cursor = db.collection('Garage' + garage.toUpperCase()).find({name: 'sensor_' + id + '_garage' + garage}, { _id: 0, name: 1, occupied: 1});
     cursor.forEach(function(doc, err) {
       assert.equal(null, err);
       result = doc;
     }, function() {
-      client.close();
       response.writeHead(200, {"Content-Type": "application/json"});
       response.write(JSON.stringify(result));
+
+      client.close();
     });
   });
 });
